@@ -20,40 +20,40 @@ def start(update: Update, context: CallbackContext):
     update.message.reply_text('Welcome to the Personal Finance bot!')
 
 
-def ask_income_amount(update: Update, context: CallbackContext):
-    update.message.reply_text("How much income do you want to add?")
-    return INCOME_AMOUNT
-
-
 def income_command(update: Update, context: CallbackContext):
     global income
-    amount = float(update.message.text)
+    if len(context.args) < 1:
+        update.message.reply_text("Please provide the amount of income. Example: /income 100 Salary")
+        return
+
+    try:
+        amount = float(context.args[0])
+    except ValueError:
+        update.message.reply_text("Invalid amount. Please provide a valid number. Example: /income 100 Salary")
+        return
+
     income += amount
     history.append(('Income', amount))
     update.message.reply_text(f'You added {amount:.2f} to your income. Your balance is now {income:.2f}.')
-    return ConversationHandler.END
-
-
-def ask_spend_amount(update: Update, context: CallbackContext):
-    update.message.reply_text("How much did you spend?")
-    return SPEND_AMOUNT
-
-
-def ask_spend_category(update: Update, context: CallbackContext):
-    amount = float(update.message.text)
-    context.user_data['spend_amount'] = amount
-    update.message.reply_text("Where did you spend the money?")
-    return SPEND_CATEGORY
 
 
 def spend_command(update: Update, context: CallbackContext):
     global income
-    amount = context.user_data['spend_amount']
-    category = update.message.text
+    if len(context.args) < 2:
+        update.message.reply_text("Please provide the amount and category. Example: /spend 100 Groceries and food")
+        return
+
+    try:
+        amount = float(context.args[0])
+    except ValueError:
+        update.message.reply_text(
+            "Invalid amount. Please provide a valid number. Example: /spend 100 Groceries and food")
+        return
+
+    category = " ".join(context.args[1:])
     income -= amount
     history.append(('Spend', amount, category))
     update.message.reply_text(f'You spent {amount:.2f} on "{category}". Your balance is now {income:.2f}.')
-    return ConversationHandler.END
 
 
 def balance_command(update: Update, context: CallbackContext):
@@ -85,29 +85,15 @@ def main():
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler('start', start))
-
-    income_handler = ConversationHandler(
-        entry_points=[CommandHandler('income', ask_income_amount)],
-        states={
-            INCOME_AMOUNT: [MessageHandler(Filters.text & ~Filters.command, income_command)],
-        },
-        fallbacks=[],
-    )
-    dp.add_handler(income_handler)
-
-    spend_handler = ConversationHandler(
-        entry_points=[CommandHandler('spend', ask_spend_amount)],
-        states={
-            SPEND_AMOUNT: [MessageHandler(Filters.text & ~Filters.command, ask_spend_category)],
-            SPEND_CATEGORY: [MessageHandler(Filters.text & ~Filters.command, spend_command)],
-        },
-        fallbacks=[],
-    )
-    dp.add_handler(spend_handler)
-
+    dp.add_handler(CommandHandler('income', income_command, pass_args=True))
+    dp.add_handler(CommandHandler('spend', spend_command, pass_args=True))
     dp.add_handler(CommandHandler('balance', balance_command))
     dp.add_handler(CommandHandler('history', history_command))
     dp.add_handler(CommandHandler('reset', reset_command))
 
     updater.start_polling()
     updater.idle()
+
+
+if __name__ == '__main__':
+    main()
