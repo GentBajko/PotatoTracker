@@ -36,7 +36,7 @@ def income_command(update: Update, context: CallbackContext):
     category = " ".join(context.args[1:])
     income += amount
     history.append(('Income', amount, user, category, date))
-    update.message.reply_text(f'@{user} added {amount:.2f} to your income. Your balance is now {income:.2f}.')
+    update.message.reply_text(f'{user} added {amount:.2f} to your income. Your balance is now {income:.2f}.')
 
 
 def spend_command(update: Update, context: CallbackContext):
@@ -57,7 +57,7 @@ def spend_command(update: Update, context: CallbackContext):
     category = " ".join(context.args[1:])
     income -= amount
     history.append(('Expense', amount, user, category, date))
-    update.message.reply_text(f'@{user} spent {amount:.2f} on {category}. Your balance is now {income:.2f}.')
+    update.message.reply_text(f'{user} spent {amount:.2f} on {category}. Your balance is now {income:.2f}.')
 
 
 def balance_command(update: Update, context: CallbackContext):
