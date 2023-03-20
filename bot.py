@@ -32,8 +32,9 @@ def income_command(update: Update, context: CallbackContext):
         update.message.reply_text("Invalid amount. Please provide a valid number. Example: /income 100 Salary")
         return
 
+    category = " ".join(context.args[1:])
     income += amount
-    history.append(('Income', amount))
+    history.append(('Income', amount, category))
     update.message.reply_text(f'You added {amount:.2f} to your income. Your balance is now {income:.2f}.')
 
 
