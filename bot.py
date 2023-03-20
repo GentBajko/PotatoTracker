@@ -6,7 +6,6 @@ from datetime import datetime
 import os
 
 load_dotenv()
-# Replace YOUR_API_TOKEN with the token you received from the BotFather
 API_TOKEN = os.getenv('TELEGRAM_TOKEN')
 
 income = 0
@@ -37,7 +36,7 @@ def income_command(update: Update, context: CallbackContext):
     category = " ".join(context.args[1:])
     income += amount
     history.append(('Income', amount, user, category, date))
-    update.message.reply_text(f'You added {amount:.2f} to your income. Your balance is now {income:.2f}.')
+    update.message.reply_text(f'@{user} added {amount:.2f} to your income. Your balance is now {income:.2f}.')
 
 
 def spend_command(update: Update, context: CallbackContext):
@@ -58,7 +57,7 @@ def spend_command(update: Update, context: CallbackContext):
     category = " ".join(context.args[1:])
     income -= amount
     history.append(('Expense', amount, user, category, date))
-    update.message.reply_text(f'You spent {amount:.2f} on "{category}". Your balance is now {income:.2f}.')
+    update.message.reply_text(f'@{user} spent {amount:.2f} on {category}. Your balance is now {income:.2f}.')
 
 
 def balance_command(update: Update, context: CallbackContext):
@@ -70,7 +69,7 @@ def history_command(update: Update, context: CallbackContext):
         update.message.reply_text('No transactions yet.')
     else:
         msg = ''.join(
-            f"{i}. {transaction[0]} {transaction[1]:.2f} {transaction[3]} {transaction[4]}\n"
+            f"{i}. {transaction[0]} {transaction[1]:.2f} {transaction[3]} {transaction[4]} - {transaction[2]}\n"
             for i, transaction in enumerate(history, start=1)
         )
         update.message.reply_text(msg)
