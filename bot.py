@@ -85,8 +85,8 @@ def main():
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(CommandHandler('income', income_command, pass_args=True))
-    dp.add_handler(CommandHandler('spend', spend_command, pass_args=True))
+    dp.add_handler(CommandHandler('in', income_command, pass_args=True))
+    dp.add_handler(CommandHandler('out', spend_command, pass_args=True))
     dp.add_handler(CommandHandler('balance', balance_command))
     dp.add_handler(CommandHandler('history', history_command))
     dp.add_handler(CommandHandler('reset', reset_command))
