@@ -1,7 +1,8 @@
 import logging
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, ConversationHandler
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext
 from dotenv import load_dotenv
+from datetime import datetime
 import os
 
 load_dotenv()
@@ -22,6 +23,8 @@ def start(update: Update, context: CallbackContext):
 
 def income_command(update: Update, context: CallbackContext):
     global income
+    date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    user = update.message.from_user.name
     if len(context.args) < 1:
         update.message.reply_text("Please provide the amount of income. Example: /income 100 Salary")
         return
@@ -31,15 +34,16 @@ def income_command(update: Update, context: CallbackContext):
     except ValueError:
         update.message.reply_text("Invalid amount. Please provide a valid number. Example: /income 100 Salary")
         return
-
     category = " ".join(context.args[1:])
     income += amount
-    history.append(('Income', amount, category))
+    history.append(('Income', amount, user, category, date))
     update.message.reply_text(f'You added {amount:.2f} to your income. Your balance is now {income:.2f}.')
 
 
 def spend_command(update: Update, context: CallbackContext):
     global income
+    date = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    user = update.message.from_user.name
     if len(context.args) < 2:
         update.message.reply_text("Please provide the amount and category. Example: /spend 100 Groceries and food")
         return
@@ -53,7 +57,7 @@ def spend_command(update: Update, context: CallbackContext):
 
     category = " ".join(context.args[1:])
     income -= amount
-    history.append(('Spend', amount, category))
+    history.append(('Expense', amount, user, category, date))
     update.message.reply_text(f'You spent {amount:.2f} on "{category}". Your balance is now {income:.2f}.')
 
 
@@ -66,9 +70,7 @@ def history_command(update: Update, context: CallbackContext):
         update.message.reply_text('No transactions yet.')
     else:
         msg = ''.join(
-            f"{i}. {transaction[0]} ({transaction[2]}): {transaction[1]:.2f}\n"
-            if transaction[0] == 'Spend'
-            else f"{i}. {transaction[0]}: {transaction[1]:.2f}\n"
+            f"{i}. {transaction[0]} {transaction[1]:.2f} {transaction[3]} {transaction[4]}\n"
             for i, transaction in enumerate(history, start=1)
         )
         update.message.reply_text(msg)

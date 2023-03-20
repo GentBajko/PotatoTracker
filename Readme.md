@@ -4,10 +4,11 @@ A simple Telegram bot that helps you track your income, spending, balance, and t
 
 ## Features
 
-- Add income with `/income [amount]`.
+- Add income with `/in [amount] [origin]`.
 - Spend money and specify where you spent it with `/spend [amount] [category]`.
 - Check your current balance with `/balance`.
 - View your transaction history with `/history`.
+- Reset your balance and transaction history with `/reset`.
 
 ## Prerequisites
 
@@ -61,9 +62,9 @@ make run
 # Usage
 To use the bot, send it commands in a private chat or mention it in a group chat with its username:
 
-`/income [amount]`: Add income.
+`/in [amount]`: Add income.
 
-`/spend [amount] [category]`: Spend money and specify the spending category.
+`/out [amount] [category]`: Spend money and specify the spending category.
 
 `/balance`: Check your current balance.
 
