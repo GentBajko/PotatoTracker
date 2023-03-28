@@ -115,18 +115,18 @@ def reset_command(update: Update, context: CallbackContext):
 
 
 def save_data():
-    with open('balance.pickle', 'wb') as f:
+    with open('potato/balance.pickle', 'wb') as f:
         pickle.dump(balance, f)
-    with open('history.pickle', 'wb') as f:
+    with open('potato/history.pickle', 'wb') as f:
         pickle.dump(history, f)
 
 
 def load_data():
     global balance, history
     try:
-        with open('balance.pickle', 'rb') as f:
+        with open('potato/balance.pickle', 'rb') as f:
             balance = pickle.load(f)
-        with open('history.pickle', 'rb') as f:
+        with open('potato/history.pickle', 'rb') as f:
             history = pickle.load(f)
     except FileNotFoundError:
         balance = {}
