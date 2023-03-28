@@ -21,7 +21,13 @@ SPEND_AMOUNT, SPEND_CATEGORY, INCOME_AMOUNT = range(3)
 
 
 def handle_message(update: Update, context: CallbackContext):
-    chat = update.message.chat
+    if update.message:
+        chat = update.message.chat
+    elif update.callback_query:
+        chat = update.callback_query.message.chat
+    else:
+        return None
+
     if chat.type == 'private':
         return chat.username
     elif chat.type in ['group', 'supergroup']:
@@ -242,6 +248,26 @@ def export_csv_command(update: Update, context: CallbackContext):
     os.remove(csv_file)
 
 
+def show_buttons(update: Update, context: CallbackContext):
+    keyboard = [
+        [
+            InlineKeyboardButton("Income", callback_data="income"),
+            InlineKeyboardButton("Expense", callback_data="expense"),
+        ],
+        [
+            InlineKeyboardButton("Balance", callback_data="balance"),
+            InlineKeyboardButton("History", callback_data="history"),
+        ],
+        [
+            InlineKeyboardButton("Reset", callback_data="reset"),
+        ],
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    update.message.reply_text("Choose an action:", reply_markup=reply_markup)
+
+
 def main():
     updater = Updater(API_TOKEN)
 
@@ -256,6 +282,7 @@ def main():
     dp.add_handler(CommandHandler('edit', edit_entry_command, pass_args=True))
     dp.add_handler(CommandHandler('delete', delete_entry_command, pass_args=True))
     dp.add_handler(CommandHandler('export', export_csv_command))
+    dp.add_handler(CommandHandler('buttons', show_buttons))
 
     updater.start_polling()
     updater.idle()
