@@ -1,6 +1,8 @@
 import logging
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import CallbackQueryHandler
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from dotenv import load_dotenv
 from datetime import datetime
 import pickle
@@ -36,7 +38,22 @@ def create_entry(update: Update, context: CallbackContext):
 
 
 def start(update: Update, context: CallbackContext):
-    update.message.reply_text('Welcome to the Personal Finance bot!')
+    keyboard = [
+        [
+            InlineKeyboardButton("Add Income", callback_data='in'),
+            InlineKeyboardButton("Spend Money", callback_data='out')
+        ],
+        [
+            InlineKeyboardButton("Check Balance", callback_data='balance'),
+            InlineKeyboardButton("Transaction History", callback_data='history')
+        ],
+        [
+            InlineKeyboardButton("Reset", callback_data='reset')
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    update.message.reply_text('Welcome to the Personal Finance bot!', reply_markup=reply_markup)
 
 
 def income_command(update: Update, context: CallbackContext):
@@ -154,16 +171,34 @@ def edit_entry_command(update: Update, context: CallbackContext):
     transaction = history[chat][entry_number]
     balance_change = new_amount - transaction[1]
 
-    # Update the balance
     balance[chat] += balance_change
 
-    # Update the transaction in history
     history[chat][entry_number] = (transaction[0], new_amount, transaction[2], transaction[3], transaction[4])
 
     update.message.reply_text(f"Entry {entry_number + 1} has been updated. Your balance is now {balance[chat]:.2f}.")
 
 
-# Add this function for deleting specific entries
+def button_handler(update: Update, context: CallbackContext):
+    query = update.callback_query
+    query.answer()
+
+    command = query.data
+    if command == 'in':
+        income_command(update, context)
+    elif command == 'out':
+        spend_command(update, context)
+    elif command == 'balance':
+        balance_command(update, context)
+    elif command == 'history':
+        history_command(update, context)
+    elif command == 'reset':
+        reset_command(update, context)
+    elif command == 'edit':
+        edit_entry_command(update, context)
+    elif command == 'delete':
+        delete_entry_command(update, context)
+
+
 def delete_entry_command(update: Update, context: CallbackContext):
     chat = create_entry(update, context)
 
@@ -184,13 +219,11 @@ def delete_entry_command(update: Update, context: CallbackContext):
     transaction = history[chat].pop(entry_number)
     balance_change = transaction[1] if transaction[0] == 'Income' else -transaction[1]
 
-    # Update the balance
     balance[chat] -= balance_change
 
     update.message.reply_text(f"Entry {entry_number + 1} has been deleted. Your balance is now {balance[chat]:.2f}.")
 
 
-# Add this function for exporting history as CSV
 def export_csv_command(update: Update, context: CallbackContext):
     chat = create_entry(update, context)
 
@@ -198,7 +231,6 @@ def export_csv_command(update: Update, context: CallbackContext):
         update.message.reply_text("No transactions to export.")
         return
 
-    # Create a CSV file
     csv_file = f"{chat}_history.csv"
     with open(csv_file, 'w', newline='') as file:
         writer = csv.writer(file)
@@ -215,6 +247,7 @@ def main():
 
     dp = updater.dispatcher
     dp.add_handler(CommandHandler('start', start))
+    dp.add_handler(CallbackQueryHandler(button_handler))
     dp.add_handler(CommandHandler('in', income_command, pass_args=True))
     dp.add_handler(CommandHandler('out', spend_command, pass_args=True))
     dp.add_handler(CommandHandler('balance', balance_command))
