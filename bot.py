@@ -3,14 +3,16 @@ from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 from dotenv import load_dotenv
 from datetime import datetime
+import pickle
 import os
+import csv
 
 load_dotenv()
 API_TOKEN = os.getenv('TELEGRAM_TOKEN')
 
 balance = {}
 history = {}
-
+os.makedirs('potato', exist_ok=True)
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 SPEND_AMOUNT, SPEND_CATEGORY, INCOME_AMOUNT = range(3)
@@ -56,6 +58,7 @@ def income_command(update: Update, context: CallbackContext):
     history[chat].append(('Income', amount, user, category, date))
     logging.info(f'{user} added {amount:.2f} to income. The balance of {chat} is now {balance[chat]:.2f}.')
     update.message.reply_text(f'{user} added {amount:.2f} to your income. Your balance is now {balance[chat]:.2f}.')
+    save_data()
 
 
 def spend_command(update: Update, context: CallbackContext):
@@ -79,6 +82,7 @@ def spend_command(update: Update, context: CallbackContext):
     history[chat].append(('Expense', amount, user, category, date))
     logging.info(f'{user} spent {amount:.2f} to income. The balance of {chat} is now {balance[chat]:.2f}.')
     update.message.reply_text(f'{user} spent {amount:.2f} on {category}. Your balance is now {balance[chat]:.2f}.')
+    save_data()
 
 
 def balance_command(update: Update, context: CallbackContext):
@@ -98,6 +102,7 @@ def history_command(update: Update, context: CallbackContext):
         )
         logging.info(f'{chat} history: {msg}.')
         update.message.reply_text(msg)
+        save_data()
 
 
 def reset_command(update: Update, context: CallbackContext):
@@ -106,6 +111,103 @@ def reset_command(update: Update, context: CallbackContext):
     balance[chat] = 0
     history[chat] = []
     update.message.reply_text("Income and history have been reset.")
+    save_data()
+
+
+def save_data():
+    with open('balance.pickle', 'wb') as f:
+        pickle.dump(balance, f)
+    with open('history.pickle', 'wb') as f:
+        pickle.dump(history, f)
+
+
+def load_data():
+    global balance, history
+    try:
+        with open('balance.pickle', 'rb') as f:
+            balance = pickle.load(f)
+        with open('history.pickle', 'rb') as f:
+            history = pickle.load(f)
+    except FileNotFoundError:
+        balance = {}
+        history = {}
+
+
+def edit_entry_command(update: Update, context: CallbackContext):
+    chat = create_entry(update, context)
+
+    if len(context.args) < 2:
+        update.message.reply_text("Please provide the entry number and new amount. Example: /edit 1 200")
+        return
+
+    try:
+        entry_number = int(context.args[0]) - 1
+        new_amount = float(context.args[1])
+    except ValueError:
+        update.message.reply_text("Invalid input. Please provide a valid entry number and amount.")
+        return
+
+    if entry_number < 0 or entry_number >= len(history[chat]):
+        update.message.reply_text("Invalid entry number. Please provide a valid entry number.")
+        return
+
+    transaction = history[chat][entry_number]
+    balance_change = new_amount - transaction[1]
+
+    # Update the balance
+    balance[chat] += balance_change
+
+    # Update the transaction in history
+    history[chat][entry_number] = (transaction[0], new_amount, transaction[2], transaction[3], transaction[4])
+
+    update.message.reply_text(f"Entry {entry_number + 1} has been updated. Your balance is now {balance[chat]:.2f}.")
+
+
+# Add this function for deleting specific entries
+def delete_entry_command(update: Update, context: CallbackContext):
+    chat = create_entry(update, context)
+
+    if len(context.args) < 1:
+        update.message.reply_text("Please provide the entry number to delete. Example: /delete 1")
+        return
+
+    try:
+        entry_number = int(context.args[0]) - 1
+    except ValueError:
+        update.message.reply_text("Invalid entry number. Please provide a valid entry number.")
+        return
+
+    if entry_number < 0 or entry_number >= len(history[chat]):
+        update.message.reply_text("Invalid entry number. Please provide a valid entry number.")
+        return
+
+    transaction = history[chat].pop(entry_number)
+    balance_change = transaction[1] if transaction[0] == 'Income' else -transaction[1]
+
+    # Update the balance
+    balance[chat] -= balance_change
+
+    update.message.reply_text(f"Entry {entry_number + 1} has been deleted. Your balance is now {balance[chat]:.2f}.")
+
+
+# Add this function for exporting history as CSV
+def export_csv_command(update: Update, context: CallbackContext):
+    chat = create_entry(update, context)
+
+    if not history[chat]:
+        update.message.reply_text("No transactions to export.")
+        return
+
+    # Create a CSV file
+    csv_file = f"{chat}_history.csv"
+    with open(csv_file, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Type", "Amount", "User", "Category", "Date"])
+        for transaction in history[chat]:
+            writer.writerow(transaction)
+    with open(csv_file, 'rb') as file:
+        update.message.reply_document(file, filename=csv_file)
+    os.remove(csv_file)
 
 
 def main():
@@ -118,6 +220,9 @@ def main():
     dp.add_handler(CommandHandler('balance', balance_command))
     dp.add_handler(CommandHandler('history', history_command))
     dp.add_handler(CommandHandler('reset', reset_command))
+    dp.add_handler(CommandHandler('edit', edit_entry_command, pass_args=True))
+    dp.add_handler(CommandHandler('delete', delete_entry_command, pass_args=True))
+    dp.add_handler(CommandHandler('export', export_csv_command))
 
     updater.start_polling()
     updater.idle()
