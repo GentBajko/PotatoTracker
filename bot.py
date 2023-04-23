@@ -1,14 +1,13 @@
 import logging
 import os
 from datetime import datetime
-from tabulate import tabulate
 from dotenv import load_dotenv
 from telebot import types, TeleBot
 import pandas as pd
 import chardet
 
 load_dotenv()
-API_TOKEN = os.getenv("TELEGRAM_TOKEN")
+API_TOKEN = os.getenv("TELEGRAM_TEST")
 
 balance = {}
 history = {}
@@ -104,7 +103,7 @@ def process_amount(message, option, category):
         history[chat].append(
             {
                 "id": len(history[chat]) + 1,
-                "type": option,
+                "type": option.capitalize(),
                 "author": author,
                 "category": option,
                 "amount": amount,
@@ -127,7 +126,7 @@ def transaction_history(call):
     history_df = pd.concat({k: pd.DataFrame(v) for k, v in history.items()}, axis=0)
     history_df.reset_index(drop=True, inplace=True)
     history_df.index += 1  # Optional: start index from 1 instead of 0
-    last_10_transactions = history_df.tail(10).to_string(index=False)  # Remove index from the displayed string
+    last_10_transactions = history_df.tail(20).to_string(index=False)  # Remove index from the displayed string
     bot.send_message(
         chat_id=call.message.chat.id,
         text=f"Last 10 transactions:\n\n{last_10_transactions}",
@@ -266,7 +265,9 @@ def export_history(message):
         history_df = pd.concat({k: pd.DataFrame(v) for k, v in history.items()}, axis=0)
         history_df.reset_index(drop=True, inplace=True)
         history_df.to_csv(csv_file, index=False)
-        bot.send_document(user_id, csv_file)
+        with open(csv_file, "rb") as f:
+            bot.send_document(user_id, f)
+        os.remove(csv_file)
         logging.info(f"Exported history for user {user_id}")
     except FileNotFoundError:
         bot.send_message(user_id, "No transaction history found.")
@@ -296,22 +297,25 @@ def import_history(message):
                 history[chat].append(
                     {
                         "id": i,
-                        "author": record["User"],
-                        "type": record["Type"],
-                        "amount": record["Amount"],
-                        "timestamp": record["Date"],
-                        "category": record["Category"],
+                        "author": record["author"],
+                        "type": record["type"],
+                        "amount": record["amount"],
+                        "timestamp": record["timestamp"],
+                        "category": record["category"],
                     }
                 )
-            balance[chat] = sum(
-                record["amount"] for record in history[chat] if record["type"] == "income"
-            ) - sum(
-                record["amount"] for record in history[chat] if record["type"] == "expense"
-            )
+            income_sum = round(sum(
+                record["amount"] for record in history[chat] if record["type"] == "Income"
+            ), 2)
+            expense_sum = round(sum(
+                record["amount"] for record in history[chat] if record["type"] == "Expense"
+            ), 2)
+            balance[chat] = round(income_sum - expense_sum, 2)
             bot.send_message(
-                chat,
+                message.chat.id,
                 f"Transaction history imported successfully. New balance: {balance[chat]}",
             )
+            save_data()
             logging.info(
                 f"Imported history for user {chat}. New balance: {balance[chat]}"
             )
