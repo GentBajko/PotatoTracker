@@ -129,7 +129,7 @@ def transaction_history(call):
     last_20_transactions = history_df.tail(20).to_string(index=False)  # Remove index from the displayed string
     bot.send_message(
         chat_id=call.message.chat.id,
-        text=f"Last 20 transactions:\n\n{last_10_transactions}",
+        text=f"Last 20 transactions:\n\n{last_20_transactions}",
     )
 
 
