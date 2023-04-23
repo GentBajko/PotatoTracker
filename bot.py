@@ -37,8 +37,8 @@ def create_entry(message):
     return chat
 
 
-@bot.message_handler(commands=["start"])
-def start(message):
+@bot.message_handler(commands=["menu"])
+def menu(message):
     create_entry(message)
     keyboard = types.InlineKeyboardMarkup()
 
