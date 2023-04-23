@@ -122,30 +122,15 @@ def process_amount(message, option, category):
         )
 
 
-def get_last_10_entries(chat):
-    last_10 = history[chat][-10:]
-    headers = ["ID", "Date & Time    ", "Author", "Type", "Category", "Amount"]
-    table_data = [
-        [
-            entry["id"],
-            entry["timestamp"],
-            entry["author"],
-            entry["type"],
-            entry["category"],
-            entry["amount"],
-        ]
-        for entry in last_10
-    ]
-    return tabulate(table_data, headers=headers, tablefmt="pipe")
-
-
 @bot.callback_query_handler(func=lambda call: call.data == "history")
 def transaction_history(call):
     history_df = pd.concat({k: pd.DataFrame(v) for k, v in history.items()}, axis=0)
     history_df.reset_index(drop=True, inplace=True)
+    history_df.index += 1  # Optional: start index from 1 instead of 0
+    last_10_transactions = history_df.tail(10).to_string(index=False)  # Remove index from the displayed string
     bot.send_message(
         chat_id=call.message.chat.id,
-        text=f"Last 10 transactions:\n\n{history_df.tail(10)}",
+        text=f"Last 10 transactions:\n\n{last_10_transactions}",
     )
 
 
@@ -319,13 +304,13 @@ def import_history(message):
                     }
                 )
             balance[chat] = sum(
-                record["amount"] for record in records if record["type"] == "income"
+                record["amount"] for record in history[chat] if record["type"] == "income"
             ) - sum(
-                record["amount"] for record in records if record["type"] == "expense"
+                record["amount"] for record in history[chat] if record["type"] == "expense"
             )
             bot.send_message(
                 chat,
-                "Transaction history imported successfully. New balance: {balance[chat]}",
+                f"Transaction history imported successfully. New balance: {balance[chat]}",
             )
             logging.info(
                 f"Imported history for user {chat}. New balance: {balance[chat]}"
