@@ -3,12 +3,12 @@ import os
 from datetime import datetime
 from tabulate import tabulate
 from dotenv import load_dotenv
-import telebot
-from telebot import types
+from telebot import types, TeleBot
 import pandas as pd
+import chardet
 
 load_dotenv()
-API_TOKEN = os.getenv("TELEGRAM_TOKEN")
+API_TOKEN = os.getenv("TELEGRAM_TEST")
 
 balance = {}
 history = {}
@@ -17,7 +17,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
-bot = telebot.TeleBot(API_TOKEN)
+bot = TeleBot(API_TOKEN)
 
 
 def handle_message(message):
@@ -141,10 +141,11 @@ def get_last_10_entries(chat):
 
 @bot.callback_query_handler(func=lambda call: call.data == "history")
 def transaction_history(call):
-    chat = handle_message(call.message)
-    last_10_entries = get_last_10_entries(chat)
+    history_df = pd.concat({k: pd.DataFrame(v) for k, v in history.items()}, axis=0)
+    history_df.reset_index(drop=True, inplace=True)
     bot.send_message(
-        chat_id=call.message.chat.id, text=f"Last 10 transactions:\n\n{last_10_entries}"
+        chat_id=call.message.chat.id,
+        text=f"Last 10 transactions:\n\n{history_df.tail(10)}",
     )
 
 
@@ -274,11 +275,13 @@ def check_balance(call):
 
 def export_history(message):
     user_id = message.chat.id
-    csv_file = f"{user_id}_history.csv"
+    csv_file = f"potato/{user_id}_history.csv"
 
     try:
-        df = pd.read_csv(csv_file)
-        bot.send_document(user_id, open(csv_file, "rb"))
+        history_df = pd.concat({k: pd.DataFrame(v) for k, v in history.items()}, axis=0)
+        history_df.reset_index(drop=True, inplace=True)
+        history_df.to_csv(csv_file, index=False)
+        bot.send_document(user_id, csv_file)
         logging.info(f"Exported history for user {user_id}")
     except FileNotFoundError:
         bot.send_message(user_id, "No transaction history found.")
@@ -286,8 +289,8 @@ def export_history(message):
 
 
 def import_history(message):
-    user_id = message.chat.id
-    csv_file = f"{user_id}_history.csv"
+    chat = create_entry(message)
+    csv_file = f"potato/{chat}_history.csv"
 
     if message.document:
         file_id = message.document.file_id
@@ -298,18 +301,44 @@ def import_history(message):
             f.write(downloaded_file)
 
         try:
-            df = pd.read_csv(csv_file)
-            bot.send_message(user_id, "Transaction history imported successfully.")
-            logging.info(f"Imported history for user {user_id}")
+            with open(csv_file, "rb") as f:
+                encoding_result = chardet.detect(f.read())
+            file_encoding = encoding_result["encoding"]
+
+            df = pd.read_csv(csv_file, encoding=file_encoding)
+            records = df.dict("records")
+            for i, record in enumerate(records, start=1):
+                history[chat].append(
+                    {
+                        "id": i,
+                        "author": record["User"],
+                        "type": record["Type"],
+                        "amount": record["Amount"],
+                        "timestamp": record["Date"],
+                        "category": record["Category"],
+                    }
+                )
+            balance[chat] = sum(
+                record["amount"] for record in records if record["type"] == "income"
+            ) - sum(
+                record["amount"] for record in records if record["type"] == "expense"
+            )
+            bot.send_message(
+                chat,
+                "Transaction history imported successfully. New balance: {balance[chat]}",
+            )
+            logging.info(
+                f"Imported history for user {chat}. New balance: {balance[chat]}"
+            )
         except pd.errors.EmptyDataError:
-            bot.send_message(user_id, "The imported file is empty or corrupted.")
-            logging.warning(f"Import failed for user {user_id}, empty or corrupted file.")
+            bot.send_message(chat, "The imported file is empty or corrupted.")
+            logging.warning(f"Import failed for user {chat}, empty or corrupted file.")
         except Exception as e:
-            bot.send_message(user_id, "An error occurred while importing the file.")
-            logging.error(f"Import failed for user {user_id}, error: {e}")
+            bot.send_message(chat, "An error occurred while importing the file.")
+            logging.error(f"Import failed for user {chat}, error: {e}")
     else:
-        bot.send_message(user_id, "Please send a valid CSV file.")
-        logging.info(f"Invalid file received for user {user_id}")
+        bot.send_message(chat, "Please send a valid CSV file.")
+        logging.info(f"Invalid file received for user {chat}")
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "export")
@@ -319,7 +348,10 @@ def handle_export(call):
 
 @bot.callback_query_handler(func=lambda call: call.data == "import")
 def handle_import(call):
-    msg = bot.send_message(call.message.chat.id, "Please send the CSV file to import your transaction history.")
+    msg = bot.send_message(
+        call.message.chat.id,
+        "Please send the CSV file to import your transaction history.",
+    )
     bot.register_next_step_handler(msg, import_history)
 
 
