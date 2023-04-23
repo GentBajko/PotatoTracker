@@ -27,7 +27,7 @@ A simple Telegram bot that helps you track your income, spending, balance, and t
 ```sh
 pip install -r requirements.txt
 ```
-3. Replace YOUR_API_TOKEN in bot.py with your Telegram bot API token obtained from the BotFather.
+3. Replace `TELEGRAM_TOKEN` in bot.py with your Telegram bot API token obtained from the BotFather.
 
 4. Run the Python script:
 ```sh
@@ -35,7 +35,7 @@ python bot.py
 ```
 ### With Docker
 1. Clone this repository or download the files.
-2. Replace YOUR_API_TOKEN in bot.py with your Telegram bot API token obtained from the BotFather.
+2. Replace `TELEGRAM_TOKEN` in bot.py with your Telegram bot API token obtained from the BotFather.
 3. Build the Docker image:
 ```sh
 docker build -t personal-finance-bot .
