@@ -126,10 +126,10 @@ def transaction_history(call):
     history_df = pd.concat({k: pd.DataFrame(v) for k, v in history.items()}, axis=0)
     history_df.reset_index(drop=True, inplace=True)
     history_df.index += 1  # Optional: start index from 1 instead of 0
-    last_10_transactions = history_df.tail(20).to_string(index=False)  # Remove index from the displayed string
+    last_20_transactions = history_df.tail(20).to_string(index=False)  # Remove index from the displayed string
     bot.send_message(
         chat_id=call.message.chat.id,
-        text=f"Last 10 transactions:\n\n{last_10_transactions}",
+        text=f"Last 20 transactions:\n\n{last_10_transactions}",
     )
 
 
