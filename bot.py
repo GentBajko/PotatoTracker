@@ -306,7 +306,7 @@ def import_history(message):
             file_encoding = encoding_result["encoding"]
 
             df = pd.read_csv(csv_file, encoding=file_encoding)
-            records = df.dict("records")
+            records = df.to_dict("records")
             for i, record in enumerate(records, start=1):
                 history[chat].append(
                     {
