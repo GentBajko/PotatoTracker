@@ -55,9 +55,9 @@ def start(message):
         types.InlineKeyboardButton("Transaction History", callback_data="history"),
     )
     keyboard.add(
-        types.InlineKeyboardButton("Export History", callback_data="export"),
-        types.InlineKeyboardButton("Import History", callback_data="import"),
         types.InlineKeyboardButton("Reset", callback_data="reset"),
+        types.InlineKeyboardButton("Import History", callback_data="import"),
+        types.InlineKeyboardButton("Export History", callback_data="export"),
     )
 
     bot.send_message(
