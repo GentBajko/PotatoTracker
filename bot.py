@@ -209,7 +209,7 @@ def request_new_amount(message, entry_number):
     )
 
 
-def save_data(folder_name="potato"):
+def save_data(folder_name="app/potato"):
     if not os.path.exists(folder_name):
         os.makedirs(folder_name)
 
@@ -221,7 +221,7 @@ def save_data(folder_name="potato"):
     history_df.to_csv(os.path.join(folder_name, "history.csv"), index=False)
 
 
-def load_data(folder_name="potato"):
+def load_data(folder_name="app/potato"):
     balance_file = os.path.join(folder_name, "balance.csv")
     history_file = os.path.join(folder_name, "history.csv")
 
