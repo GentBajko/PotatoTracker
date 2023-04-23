@@ -7,7 +7,7 @@ import pandas as pd
 import chardet
 
 load_dotenv()
-API_TOKEN = os.getenv("TELEGRAM_TEST")
+API_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 balance = {}
 history = {}
