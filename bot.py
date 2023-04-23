@@ -8,7 +8,7 @@ from telebot import types
 import pandas as pd
 
 load_dotenv()
-API_TOKEN = os.getenv("TELEGRAM_TEST")
+API_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 balance = {}
 history = {}
