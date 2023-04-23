@@ -4,11 +4,12 @@ A simple Telegram bot that helps you track your income, spending, balance, and t
 
 ## Features
 
-- Add income with `/in [amount] [origin]`.
-- Spend money and specify where you spent it with `/spend [amount] [category]`.
-- Check your current balance with `/balance`.
-- View your transaction history with `/history`.
-- Reset your balance and transaction history with `/reset`.
+- Add income or expense with the interactive menu.
+- Edit or delete transaction entries.
+- Check your current balance.
+- View your transaction history.
+- Reset your balance and transaction history.
+- Import and export transaction history as a CSV file.
 
 ## Prerequisites
 
@@ -29,51 +30,30 @@ pip install -r requirements.txt
 3. Replace YOUR_API_TOKEN in bot.py with your Telegram bot API token obtained from the BotFather.
 
 4. Run the Python script:
-
 ```sh
 python bot.py
 ```
-
 ### With Docker
-
 1. Clone this repository or download the files.
 2. Replace YOUR_API_TOKEN in bot.py with your Telegram bot API token obtained from the BotFather.
 3. Build the Docker image:
-
 ```sh
-docker build -t potato-tracker .
-```
-or
-
-```sh
-make build
+docker build -t personal-finance-bot .
 ```
 4. Run the Docker container:
-
 ```sh
-docker run -rm --name potato-tracker potato-tracker
+docker run --rm --name personal-finance-bot personal-finance-bot
 ```
 or
-
 ```sh
 make run
 ```
-
-# Usage
+### Usage
 To use the bot, send it commands in a private chat or mention it in a group chat with its username:
 
-`/in [amount]`: Add income.
+`/menu`: Opens the interactive menu to add income, expenses, edit or delete entries, check balance, view transaction history, and import or export history.
 
-`/out [amount] [category]`: Spend money and specify the spending category.
+In group chats, use the format `/command@your_bot_username`, replacing `your_bot_username` with your bot's actual username.
 
-`/balance`: Check your current balance.
-
-`/history`: View your transaction history.
-
-`/reset`: Reset your balance and transaction history.
-
-In group chats, use the format `/command@`, replacing your_bot_username with your bot's actual username.
-
-# License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+License
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/GentBajko/PotatoTracker/blob/master/LICENSE) file for details.
