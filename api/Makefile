@@ -1,8 +1,14 @@
+start:
+	dotnet watch run
+
 build:
 	docker build -t potato-tracker .
 
 up:
 	docker-compose up -d
+
+mongo:
+	docker-compose up -d mongo
 
 down:
 	docker-compose down

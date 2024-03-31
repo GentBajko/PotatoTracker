@@ -1,6 +1,8 @@
-using api.Config;
 using api.Controllers;
 using api.Services;
+using dotenv.net;
+
+DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +11,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Register the TransactionService and TelegramBotController
+builder.Services.AddSingleton<ConnectToMongo>();
 builder.Services.AddSingleton<TransactionService>();
-builder.Services.AddSingleton<TelegramBotController>();
+builder.Services.AddControllers(); // Register controllers
 
 var app = builder.Build();
 
@@ -21,12 +24,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-// Start the Telegram bot when the application starts
-app.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStarted.Register(() =>
+app.UseRouting();
+app.UseEndpoints(endpoints =>
 {
-    var botController = app.Services.GetRequiredService<TelegramBotController>();
-    botController.StartBot();
+    endpoints.MapControllers();
 });
 
 app.Run();

@@ -7,6 +7,9 @@ namespace api.Config
         public Config()
         {
             DotEnv.Load();
+            Console.WriteLine($"MONGO_URI: {MONGO_URI}");
+            Console.WriteLine($"MONGO_DB: {MONGO_DB}");
+            Console.WriteLine($"TELEGRAM_TOKEN: {TELEGRAM_TOKEN}");
         }
 
         public static string MONGO_URI => Environment.GetEnvironmentVariable("MONGO_URI") ?? "mongodb://localhost:27017/potatotracker";

@@ -7,7 +7,7 @@ namespace api.Services
     {
         private readonly IMongoCollection<Transaction> _transactions;
 
-        public TransactionService(IMongoClient client)
+        public TransactionService()
         {
             var MongoInstance = new ConnectToMongo();
             var database = MongoInstance.Database;

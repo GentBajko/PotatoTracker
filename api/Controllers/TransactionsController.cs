@@ -9,15 +9,18 @@ namespace api.Controllers
     public class TransactionsController : ControllerBase
     {
         private readonly TransactionService _transactionService;
+        private readonly ILogger<TransactionsController> _logger;
 
-        public TransactionsController(TransactionService transactionService)
+        public TransactionsController(TransactionService transactionService, ILogger<TransactionsController> logger)
         {
             _transactionService = transactionService;
+            _logger = logger;
         }
 
         [HttpGet("{chatId}")]
         public ActionResult<List<Transaction>> GetTransactions(string chatId)
         {
+            _logger.LogInformation("GetTransactions called");
             var transactions = _transactionService.Get(chatId);
             return Ok(transactions);
         }
