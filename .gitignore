@@ -1,54 +1,56 @@
-# .gitignore
+# .NET Core
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+*.dll
+*.exe
+*.pdb
+*.cache
+*.log
+*.sqlite
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pyc
-*.pyo
-
-# Virtual environments
-venv/
-*.venv
-env/
-.venv/
-
-# Jupyter Notebook
-.ipynb_checkpoints/
-
-# VSCode
+# Visual Studio
+.vs/
 .vscode/
+*.suo
+*.csproj.user
+*.nupkg
+*.snupkg
+*.nuget.props
+*.nuget.targets
 
-# PyCharm
+# Rider
 .idea/
+*.sln.iml
+
+# MSTest test results
+TestResults/
+
+# NUnit test results
+TestResult.xml
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
 
 # macOS
 .DS_Store
 
-# Logs
-logs/
-*.log
+# Others
+appsettings.json
+appsettings.*.json
 
-# Unit test / coverage reports
-htmlcov/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-
-# Dist
-dist/
-build/
-*.egg-info/
-
-# Other files
-*.swp
-*.swo
-*.swn
-*.bak
-*.tmp
-fly.toml
 .env
+.mono/

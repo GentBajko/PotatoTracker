@@ -1,12 +1,20 @@
-FROM python:3.10
-
+FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 WORKDIR /app
+EXPOSE 80
+EXPOSE 443
 
-COPY requirements.txt .
-
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
+FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+WORKDIR /src
+COPY ["api.csproj", "./"]
+RUN dotnet restore "api.csproj"
 COPY . .
+WORKDIR "/src/"
+RUN dotnet build "api.csproj" -c Release -o /app/build
 
-CMD [ "python", "bot.py" ]
+FROM build AS publish
+RUN dotnet publish "api.csproj" -c Release -o /app/publish
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "api.dll"]

@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  potato_tracker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: PotatoTracker
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/potato_tracker
+    restart: always
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

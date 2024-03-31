@@ -1,0 +1,6 @@
+@api_HostAddress = http://localhost:3000
+
+GET {{api_HostAddress}}/transactions/
+Accept: application/json
+
+###
