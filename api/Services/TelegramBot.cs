@@ -285,7 +285,8 @@ public class TelegramBotService
             new KeyboardButton[] { "/balance", "/monthlybalance" }
         })
         {
-            ResizeKeyboard = true
+            ResizeKeyboard = true,
+            OneTimeKeyboard = true
         };
 
         await _botClient.SendTextMessageAsync(chatId, "Choose an option:", replyMarkup: keyboard);
@@ -317,7 +318,8 @@ public class TelegramBotService
             new KeyboardButton("Salary Day")
         })
         {
-            ResizeKeyboard = true
+            ResizeKeyboard = true,
+            OneTimeKeyboard = true
         };
 
         _userStates[chatId] = new UserState { CurrentStep = UserState.Step.SettingsMenu, Settings = new Settings { ChatId = chatId.ToString() } };
