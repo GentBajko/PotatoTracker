@@ -1,33 +1,20 @@
-using api.Controllers;
-using api.Services;
 using dotenv.net;
+using api.Services;
 
-DotEnv.Load();
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Register the TransactionService and TelegramBotController
-builder.Services.AddSingleton<ConnectToMongo>();
-builder.Services.AddSingleton<TransactionService>();
-builder.Services.AddControllers(); // Register controllers
-
-var app = builder.Build();
-
-if (app.Environment.IsDevelopment())
+class Program
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    static void Main(string[] args)
+    {
+        DotEnv.Load(); // Load environment variables from .env file
+
+        var botToken = Environment.GetEnvironmentVariable("TELEGRAM_TOKEN");
+
+        if (string.IsNullOrEmpty(botToken))
+        {
+            Console.WriteLine("TELEGRAM_TOKEN is not set in .env file");
+            return;
+        } else {
+            var telegramBotService = new TelegramBotService(botToken);
+        }
+    }
 }
-
-app.UseHttpsRedirection();
-app.UseRouting();
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
-
-app.Run();

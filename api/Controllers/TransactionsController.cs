@@ -1,6 +1,9 @@
 using api.Models;
 using api.Services;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
+using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
 
 namespace api.Controllers
 {
@@ -26,9 +29,14 @@ namespace api.Controllers
         }
 
         [HttpGet("{chatId}/{id}")]
-        public ActionResult<Transaction> GetTransaction(string chatId, int id)
+        public ActionResult<Transaction> GetTransaction(string chatId, string id)
         {
-            var transaction = _transactionService.Get(chatId, id);
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
+            {
+                return BadRequest("Invalid transaction ID format.");
+            }
+
+            var transaction = _transactionService.Get(chatId, objectId);
             if (transaction == null)
                 return NotFound();
 
@@ -46,20 +54,30 @@ namespace api.Controllers
         public ActionResult<Transaction> CreateTransaction(Transaction transaction)
         {
             var createdTransaction = _transactionService.Create(transaction);
-            return CreatedAtAction(nameof(GetTransaction), new { chatId = createdTransaction.ChatId, id = createdTransaction.Id }, createdTransaction);
+            return CreatedAtAction(nameof(GetTransaction), new { chatId = createdTransaction.ChatId, id = createdTransaction.Id.ToString() }, createdTransaction);
         }
 
         [HttpPut("{chatId}/{id}")]
-        public IActionResult UpdateTransaction(string chatId, int id, Transaction transaction)
+        public IActionResult UpdateTransaction(string chatId, string id, Transaction transaction)
         {
-            _transactionService.Update(chatId, id, transaction);
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
+            {
+                return BadRequest("Invalid transaction ID format.");
+            }
+
+            _transactionService.Update(chatId, objectId, transaction);
             return NoContent();
         }
 
         [HttpDelete("{chatId}/{id}")]
-        public IActionResult DeleteTransaction(string chatId, int id)
+        public IActionResult DeleteTransaction(string chatId, string id)
         {
-            _transactionService.Remove(chatId, id);
+            if (!ObjectId.TryParse(id, out ObjectId objectId))
+            {
+                return BadRequest("Invalid transaction ID format.");
+            }
+
+            _transactionService.Remove(chatId, objectId);
             return NoContent();
         }
     }
