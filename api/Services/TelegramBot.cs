@@ -49,6 +49,12 @@ public class TelegramBotService
             }
             else
             {
+                string botUsername = "PotatoTrackerBot";
+                if (messageText.Contains($"@{botUsername}"))
+                {
+                    messageText = messageText.Replace($"@{botUsername}", "");
+                }
+
                 switch (messageText.ToLower())
                 {
                     case "/start":
@@ -84,6 +90,9 @@ public class TelegramBotService
                     case "/monthlybalance":
                         await HandleMonthlyBalanceCommand(chatId);
                         break;
+                    case "/menu":
+                        await ShowMainMenu(chatId);
+                        break;
                     default:
                         break;
                 }
@@ -96,6 +105,7 @@ public class TelegramBotService
             _userStates.TryRemove(chatId, out _);
         }
     }
+
 
     private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
