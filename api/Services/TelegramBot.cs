@@ -85,7 +85,6 @@ public class TelegramBotService
                         await HandleMonthlyBalanceCommand(chatId);
                         break;
                     default:
-                        await ShowMainMenu(chatId);
                         break;
                 }
             }
